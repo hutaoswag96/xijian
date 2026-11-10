@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#164b3c"><meta name="description" content="息见：A股分红数据查询、自选整理与个人持仓、交易及分红到账记录。">
+  <link rel="icon" href="./favicon.svg"><title>息见 · 个人股息研究与记账</title><link rel="stylesheet" href="./style.css?v=20261110-tags"><script src="./pages-bridge.js?v=1" defer></script><script src="./icons.js?v=20261110-tags" defer></script><script src="./auto-data.js?v=20261110-tags" defer></script><script src="./history-chart.js?v=20261110-tags" defer></script>
+<script src="./investment-state.js?v=20261110-tags" defer></script><script src="./workspace-ui.js?v=20261110-tags" defer></script>
+<script src="./account-data.js?v=20261110-tags" defer></script>
+<script src="./mine-ui.js?v=20261110-tags" defer></script>
+<script src="./dividend-research.js?v=20261110-tags" defer></script>
+<script src="./personal-research.js?v=20261110-tags" defer></script>
+<script src="./app.js?v=20261110-tags" defer></script>
+<link rel="stylesheet" href="./workspace.css?v=20261110-tags">
+<link rel="stylesheet" href="./mine.css?v=20261110-tags">
+</head>
+<body>
+<a class="skip-link" href="#main">跳到主要内容</a>
+<aside class="sidebar">
+  <a class="brand" href="#dashboard"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M7 22V13m6 9V8m6 14V11m6 11V5"/></svg></span><span>息见<small>DIVIDEND INSIGHT</small></span></a>
+  <div class="workspace-label">我的数据工作台</div>
+  <nav class="main-nav" aria-label="主导航">
+    <a href="#dashboard" data-page="dashboard"><span data-icon="dashboard"></span>股息研究看板<span class="nav-dot"></span></a>
+    <a href="#watchlist" data-page="watchlist"><span data-icon="list"></span>我的自选<span class="nav-count" id="navCount">0</span></a>
+    <a href="#holdings" data-page="holdings"><span data-icon="wallet"></span>我的持仓</a>
+    <a href="#mine" data-page="mine"><span data-icon="user"></span>我的</a>
+  </nav>
+  <div class="sidebar-bottom"><div class="engine-card"><span class="engine-dot"></span><b>分红数据与记录</b><p>查看分红与财报<br>记录实际交易和到账</p><button class="text-link" data-action="method">查看数据口径 <span data-icon="arrow"></span></button></div><div class="side-foot"><span data-icon="flask"></span>公开资料 · 个人记录<span>v4.0</span></div></div>
+</aside>
+<div class="app-shell">
+  <header class="topbar"><div class="breadcrumb"><span>我的工作台</span><span class="crumb-slash">/</span><b id="crumb">股息研究看板</b></div><a href="#dashboard" class="mobile-brand">息见<span>分红数据与记账</span></a><div class="top-actions"><button class="live-status" data-action="refresh" id="refreshButton" aria-label="刷新真实数据"><span data-icon="refresh"></span><span id="syncStatus">连接数据源</span></button><button class="icon-button" data-action="notifications" aria-label="条件提醒"><span data-icon="bell"></span></button><a href="#mine" class="avatar" aria-label="打开我的"><span data-icon="user"></span></a></div></header>
+  <div class="github-notice" id="githubDataMode">GitHub访问版 · 行情直接查询，失败时尝试带日期的快照 · 个人记录仅保存在本机</div><main id="main" tabindex="-1"></main>
+  <footer class="page-footer"><span>息见 · 分红资料与个人记录</span><span>个人研究参考 · 公开数据可能延迟</span></footer>
+</div>
+<nav class="mobile-nav" aria-label="手机导航"><a href="#dashboard" data-page="dashboard"><span data-icon="dashboard"></span>看板</a><a href="#watchlist" data-page="watchlist"><span data-icon="list"></span>自选</a><a href="#holdings" data-page="holdings"><span data-icon="wallet"></span>持仓</a><a href="#mine" data-page="mine"><span data-icon="user"></span>我的</a></nav>
+<dialog id="detailDialog" class="detail-dialog" aria-labelledby="detailTitle"></dialog>
+<dialog id="addDialog" class="add-dialog" aria-labelledby="addTitle"></dialog>
+<dialog id="infoDialog" class="info-dialog" aria-labelledby="infoTitle"></dialog>
+<dialog id="groupDialog" class="add-dialog workspace-dialog" aria-label="自选分组管理"></dialog>
+<dialog id="stockOptionsDialog" class="add-dialog workspace-dialog" aria-label="自选分组与看板展示设置"></dialog>
+<dialog id="tradeDialog" class="add-dialog workspace-dialog" aria-label="持仓与交易录入"></dialog>
+<dialog id="ledgerDialog" class="ledger-dialog workspace-dialog" aria-label="持仓交易记录"></dialog>
+<dialog id="receiptDialog" class="add-dialog workspace-dialog" aria-label="分红实际到账记账"></dialog>
+<dialog id="mineDataDialog" class="add-dialog workspace-dialog" aria-label="清除本机数据确认"></dialog>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body></html>
