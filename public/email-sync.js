@@ -3,7 +3,7 @@ const EMAIL_SYNC_ORIGIN='https://xijian-sync-tao-1110.hutaobest.chatgpt.site';
 const EMAIL_META_KEY='xijian_email_sync_meta_v1',EMAIL_SESSION_KEY='xijian_email_session_v1';
 let emailStaleTab=false,emailDeleteConfirm=false;
 let emailSession=null,emailMeta={},emailBooted=false,emailBusy=false,emailApplying=false,emailTimer=null,emailConflict=null,emailRecovery=null,emailFormMode='login',emailPaused=false,emailStatus='游客模式 · 记录保存在本机',emailError='';
-try{emailSession=JSON.parse(sessionStorage.getItem(EMAIL_SESSION_KEY)||'null');emailMeta=JSON.parse(localStorage.getItem(EMAIL_META_KEY)||'{}')}catch{}
+try{emailSession=JSON.parse(sessionStorage.getItem(EMAIL_SESSION_KEY)||'null');emailMeta=JSON.parse(localStorage.getItem(EMAIL_META_KEY)||'{}');if(!emailMeta||typeof emailMeta!=='object'||Array.isArray(emailMeta))emailMeta={};if(emailSession&&typeof emailSession!=='object')emailSession=null}catch{}
 function emailLocal(){if(workspaceLoadError)throw Error('本机资料校验未通过，请先导出检查');const c=XijianInvestments.importBackup(backupData());return {version:3,...c}}
 function emailMetaSave(value){localStorage.setItem(EMAIL_META_KEY,JSON.stringify(value));emailMeta=value}
 function emailPaint(force=false){Object.assign(accountState,{loaded:true,loading:false,authenticated:!!emailSession?.user,hasBackup:!!emailMeta.base,backupAvailable:!!emailSession?.user,user:emailSession?.user||null});if(currentPage()==='mine'&&['home','account','data'].includes(mineSection())&&(force||!document.activeElement?.closest?.('#emailAuthForm')))render();const profile=document.querySelector('.mine-account small');if(profile)profile.textContent=emailStatus}

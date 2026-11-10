@@ -4,7 +4,7 @@ fs.mkdirSync(path.join(out,'public'),{recursive:true});for(const name of ['risk-
 fs.cpSync('lib/market',path.join(out,'lib/market'),{recursive:true});
 const providerFile=path.join(out,'lib/market/providers.mjs');fs.writeFileSync(providerFile,fs.readFileSync(providerFile,'utf8').replace('new TextDecoder(encoding)',"new TextDecoder('utf-8')"));
 fs.copyFileSync('github/pages-bridge.js',path.join(out,'pages-bridge.js'));
-let html=fs.readFileSync('frontend/index.html','utf8').replaceAll('src="/','src="./').replaceAll('href="/','href="./');
+let html=fs.readFileSync('frontend/index.html','utf8').replaceAll('src="/','src="./').replaceAll('href="/','href="./').replaceAll('v=20261110-tags','v=20261110-sync');
 html=html.replace('<script src="./icons.js','<script src="./pages-bridge.js?v=20261110-sync" defer></script><script src="./icons.js');
 html=html.replace('<script src="./app.js','<script src="./sync-core.js?v=20261110-sync" defer></script><script src="./email-sync.js?v=20261110-sync" defer></script><script src="./app.js');
 html=html.replace('<main id="main"','<div class="github-notice" id="githubDataMode">GitHub访问版 · 行情直接查询，失败时尝试带日期的快照 · 游客保存在本机，登录后同步</div><main id="main"').replace('仅供本人研究','个人研究参考');
