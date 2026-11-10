@@ -94,3 +94,5 @@
  .mine-document h2{font-size:14px}
  .mine-document section p{font-size:12px}
 }
+
+.email-auth-form input{font-size:16px;min-height:44px;max-width:100%}.email-auth-form .btn{min-height:44px}.email-auth-tabs{display:flex;gap:20px;flex-wrap:wrap;margin:12px 0}.email-auth-tabs .text-link{min-height:44px}.email-account-heading{display:flex;gap:12px;align-items:center}.email-account-heading>div{min-width:0}.email-account-heading h2{overflow-wrap:anywhere;margin:0}.email-account-heading p{margin:4px 0}.email-sync-status{padding:10px 12px;background:#eef5f0;border-radius:8px;color:#215d47;font-weight:600}.email-sync-conflict{border-color:#b99a5a!important}.email-recovery{border-color:#b99a5a!important}.email-recovery code{display:block;overflow-wrap:anywhere;font-size:16px;line-height:1.8;background:#f4f4ee;padding:12px;margin:12px 0;border-radius:8px;user-select:all}.email-recovery .btn{margin:4px 8px 4px 0}.email-auth-form .workspace-form-error{color:#a33d34}.mine-panel .btn{min-height:44px}.email-sync-conflict .account-backup-actions{gap:8px;flex-wrap:wrap}

@@ -2,6 +2,8 @@
 (function(){
  'use strict';
  const nativeFetch=window.fetch.bind(window),base=new URL('.',document.currentScript.src);let seq=0,market;
+ // The account transport only accepts the fixed backend and v1 paths. It never runs provider code.
+ window.XijianAccountFetch=(input,options={})=>{const u=new URL(input);if(u.origin!=='https://xijian-sync-tao-1110.hutaobest.chatgpt.site'||!u.pathname.startsWith('/v1/'))return Promise.reject(Error('未允许的账号服务'));return nativeFetch(u.href,{...options,credentials:'omit',referrerPolicy:'no-referrer'})};
  const allowed=new Set(['qt.gtimg.cn','hq.sinajs.cn','smartbox.gtimg.cn','web.ifzq.gtimg.cn','push2his.eastmoney.com','datacenter-web.eastmoney.com','emweb.securities.eastmoney.com','quotes.sina.cn','vip.stock.finance.sina.com.cn','yield.chinabond.com.cn']);
  const response=(value,status=200)=>new Response(JSON.stringify(value),{status,headers:{'content-type':'application/json;charset=utf-8'}});
  const note=text=>{const el=document.getElementById('githubDataMode');if(el)el.textContent=text};
