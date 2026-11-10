@@ -1,0 +1,53 @@
+/* Entry uses the dashboard's forest green and warm neutral surfaces. */
+#entryGate{display:none}
+html[data-entry="locked"] #entryGate{display:grid;place-items:center}
+html[data-entry="locked"] body{background:#f5f7f2;padding:0;min-height:100dvh}
+.entry-gate{min-height:100dvh;box-sizing:border-box;padding:40px 24px;background:radial-gradient(ellipse at 15% 8%,#e7eee3 0,transparent 50%),radial-gradient(ellipse at 88% 90%,#e8efe9 0,transparent 48%),#f5f7f2;color:#213c30}
+.entry-content{box-sizing:border-box;width:100%;max-width:464px;padding:36px;background:#fff;border:1px solid #dce4d9;border-radius:24px;box-shadow:0 16px 60px #244f3510}
+.entry-brand{display:flex;align-items:center;gap:12px;font-size:25px;font-weight:650;letter-spacing:2px}
+.entry-brand small{display:block;font-size:9px;line-height:1.8;letter-spacing:2px;font-weight:500;color:#5b6f64}
+.entry-mark{display:grid;place-items:center;width:48px;height:48px;border-radius:14px;background:#e9f1e8;color:#225e49}
+.entry-mark svg{width:30px;height:30px}
+.entry-intro{margin:40px 0 20px}
+.entry-eyebrow{font-size:12px!important;letter-spacing:1px;color:#526b5c!important;margin:0 0 12px!important}
+.entry-intro h1,.entry-auth-title h1{font-size:32px;line-height:1.3;font-weight:600;letter-spacing:-.7px;margin:0 0 14px}
+.entry-intro>p:last-child,.entry-auth-title p{font-size:16px;line-height:1.8;color:#5b6f64;margin:0}
+.entry-mobile-break{display:none}
+.entry-topics{display:flex;gap:9px;margin:0 0 30px;flex-wrap:wrap}
+.entry-topics span{padding:5px 9px;background:#f2f5ee;border-radius:5px;font-size:11px;color:#4c6555}
+.entry-options{display:grid;gap:12px}
+.entry-option{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:17px 19px;border-radius:12px;border:1px solid #d6e1d4;text-align:left;cursor:pointer;min-height:80px;transition:background .15s,border-color .15s}
+.entry-option b{font-size:16px;font-weight:600;display:block;line-height:1.6}
+.entry-option small{display:block;font-size:12px;line-height:1.8;font-weight:400}
+.entry-option>span:last-child{font-size:24px;line-height:1;flex-shrink:0}
+.entry-primary{background:#225e49;color:#fff;border-color:#225e49}
+.entry-primary small{color:#e1eee7}
+.entry-primary:hover{background:#194d3a}
+.entry-guest{color:#244f3a;background:#f7f9f4}
+.entry-guest small{color:#52695c}
+.entry-guest:hover{background:#edf3e8;border-color:#a3b7a4}
+.entry-login{font-size:13px;color:#5b6f64;text-align:center;margin:17px 0}
+.entry-login button,.entry-auth-guest button{color:#215e48;font-size:13px;font-weight:550;min-height:44px;padding:4px 6px;border:0;background:none;cursor:pointer}
+.entry-fineprint{font-size:12px;color:#5b6f64;text-align:center;line-height:1.9;margin:24px 0 15px}
+.entry-legal{display:flex;gap:12px;align-items:center;justify-content:center;font-size:12px;color:#5b6f64}
+.entry-legal a{min-height:44px;display:inline-flex;align-items:center;color:inherit;text-decoration:underline;text-underline-offset:3px}
+.entry-back{min-height:44px;padding:0 4px;margin:-12px 0 18px;background:none;border:0;color:#365e49;font-size:13px;cursor:pointer}
+.entry-auth-title{margin:28px 0 24px}
+.entry-auth-title h1{font-size:26px}
+.entry-auth-title p{font-size:14px}
+.entry-content .email-auth-form{border:0;padding:0;margin:0;box-shadow:none;background:none}
+.entry-content .email-auth-form h2{font-size:18px;margin:0 0 10px}
+.entry-content .email-auth-form p{font-size:12px;line-height:1.8;color:#52665b}
+.entry-content .email-auth-form input{width:100%;box-sizing:border-box;font-size:16px;min-height:46px}
+.entry-content .email-auth-form .btn.primary{width:100%;margin-top:8px;font-size:15px}
+.entry-content .email-auth-form .form-row{margin:18px 0}
+.entry-content .email-auth-form .form-row label{font-size:13px}
+.entry-auth-guest{text-align:center;margin:14px 0 -10px}
+.entry-notice{font-size:13px;line-height:1.8;color:#735b28;background:#faf4e8;padding:10px 12px;border-radius:8px;margin:0 0 18px}
+.entry-document h1{font-size:26px;margin:0 0 20px}
+.entry-document h2{font-size:16px;margin:24px 0 8px}
+.entry-document p{font-size:14px;line-height:1.95;color:#52665b}
+.entry-content button:focus-visible,.entry-content a:focus-visible{outline:3px solid #769b6b;outline-offset:4px}
+@media(max-width:520px){.entry-gate{padding:24px 20px;align-items:center}.entry-content{padding:28px 24px;border-radius:20px}.entry-intro{margin-top:30px}.entry-intro h1{font-size:29px}.entry-intro>p:last-child{font-size:15px}.entry-option{padding:15px}.entry-fineprint{margin-top:18px}.entry-auth-title{margin:22px 0}.entry-content:has(.email-auth-form){margin:8px 0}}
+@media(max-width:360px){.entry-gate{padding:16px 12px}.entry-content{padding:24px 20px}.entry-mobile-break{display:block}}
+@media(prefers-reduced-motion:reduce){.entry-option{transition:none}}

@@ -4,10 +4,13 @@ fs.mkdirSync(path.join(out,'public'),{recursive:true});for(const name of ['risk-
 fs.cpSync('lib/market',path.join(out,'lib/market'),{recursive:true});
 const providerFile=path.join(out,'lib/market/providers.mjs');fs.writeFileSync(providerFile,fs.readFileSync(providerFile,'utf8').replace('new TextDecoder(encoding)',"new TextDecoder('utf-8')"));
 fs.copyFileSync('github/pages-bridge.js',path.join(out,'pages-bridge.js'));
-let html=fs.readFileSync('frontend/index.html','utf8').replaceAll('src="/','src="./').replaceAll('href="/','href="./').replaceAll('v=20261110-tags','v=20261110-sync');
-html=html.replace('<script src="./icons.js','<script src="./pages-bridge.js?v=20261110-sync" defer></script><script src="./icons.js');
-html=html.replace('<script src="./app.js','<script src="./sync-core.js?v=20261110-sync" defer></script><script src="./email-sync.js?v=20261110-sync" defer></script><script src="./app.js');
+let html=fs.readFileSync('frontend/index.html','utf8').replaceAll('src="/','src="./').replaceAll('href="/','href="./').replaceAll('v=20261110-tags','v=20261110-entry');
+html=html.replace('<script src="./icons.js','<script src="./pages-bridge.js?v=20261110-entry" defer></script><script src="./icons.js');
+html=html.replace('<script src="./app.js','<script src="./sync-core.js?v=20261110-entry" defer></script><script src="./email-sync.js?v=20261110-entry" defer></script><script src="./entry-gate.js?v=20261110-entry" defer></script><script src="./app.js');
 html=html.replace('<main id="main"','<div class="github-notice" id="githubDataMode">GitHub访问版 · 行情直接查询，失败时尝试带日期的快照 · 游客保存在本机，登录后同步</div><main id="main"').replace('仅供本人研究','个人研究参考');
+html=html.replace('<html lang="zh-CN">','<html lang="zh-CN" data-entry="locked">');
+html=html.replace('</head>','<link rel="stylesheet" href="./entry.css?v=20261110-entry"><style>html[data-entry="locked"] body > :not(#entryGate):not(script):not(noscript){display:none!important}</style></head>');
+html=html.replace('<body>','<body><section id="entryGate" class="entry-gate" aria-labelledby="entryTitle"><div id="entryContent" class="entry-content"><div class="entry-brand">息见</div><h1 id="entryTitle">欢迎来到息见</h1><p>看清股息高低，记好每一笔分红。</p><div class="entry-options"><button class="entry-option entry-primary" data-entry-action="register"><span><b>邮箱注册</b><small>保存个人记录，换设备继续使用</small></span></button><button class="entry-option entry-guest" data-entry-action="guest"><span><b>游客体验</b><small>记录保存在当前设备</small></span></button></div></div></section><noscript>请启用JavaScript后选择游客体验或邮箱注册。</noscript>');
 fs.writeFileSync(path.join(out,'index.html'),html);fs.writeFileSync(path.join(out,'.nojekyll'),'');
 fs.appendFileSync(path.join(out,'workspace.css'),'\n.github-notice{margin:12px 24px 0;padding:9px 12px;font-size:12px;line-height:1.7;color:#52665a;background:#f3f5ed;border-radius:8px}@media(max-width:600px){.github-notice{margin:10px 16px 0}}\n');
 const mineFile=path.join(out,'mine-ui.js');let mine=fs.readFileSync(mineFile,'utf8');
