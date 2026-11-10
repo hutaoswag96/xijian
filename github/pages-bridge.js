@@ -19,7 +19,7 @@
  async function upstream(url,options){const u=new URL(url),cb='xijian_jsonp_'+(++seq),signal=options?.signal;
   if(!allowed.has(u.hostname))throw Error('未允许的行情来源');
   if(u.hostname==='qt.gtimg.cn'||u.hostname==='hq.sinajs.cn'||u.hostname==='smartbox.gtimg.cn'){
-   const isHint=u.hostname==='smartbox.gtimg.cn',symbol=(u.searchParams.get('list')||u.search.slice(1).replace(/^q=/,'')),name=isHint?'v_hint':u.hostname==='qt.gtimg.cn'?'v_'+symbol:'hq_str_'+symbol;
+   const isHint=u.hostname==='smartbox.gtimg.cn',symbol=(u.searchParams.get('list')||(u.pathname.startsWith('/q=')?u.pathname.slice(3):u.search.slice(1).replace(/^q=/,''))),name=isHint?'v_hint':u.hostname==='qt.gtimg.cn'?'v_'+symbol:'hq_str_'+symbol;
    const value=await scriptData(u.href,{globalName:name,charset:'gb18030',signal});return new Response(name+'='+JSON.stringify(value)+';');
   }
   if(u.hostname==='web.ifzq.gtimg.cn'){u.searchParams.set('_var',cb);const value=await scriptData(u.href,{globalName:cb,signal});delete window[cb];return response(value)}
