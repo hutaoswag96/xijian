@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';import {randomBytes,randomUUID} from 'no
 const origin='https://hutaoswag96.github.io',base='https://xijian-sync-tao-1110.hutaobest.chatgpt.site',cleanup=[];
 async function request(path,{method='GET',body,token,status=200}={}){const preflight=method==='OPTIONS',url=base+(preflight?path:'/v1/transport'),headers={Origin:origin,...(preflight?{'Access-Control-Request-Method':'POST','Access-Control-Request-Headers':'content-type'}:{'Content-Type':'text/plain;charset=UTF-8',Accept:'application/json'})};const r=await fetch(url,{method:preflight?'OPTIONS':'POST',headers,...(!preflight?{body:JSON.stringify({path,method,token,payload:body})}:{}),signal:AbortSignal.timeout(20000)});if(r.status!==status)throw Error(`${method} ${path}: expected ${status}, received ${r.status}; external connectivity not verified`);assert.equal(r.headers.get('access-control-allow-origin'),origin);return r.status===204?null:r.json()}
 
-async function makeUser(){const email='smoke-'+randomUUID()+'@xijian.invalid',password=randomBytes(24).toString('base64url'),data=await request('/v1/register',{method:'POST',body:{email,password}}),u={...data,email,password};cleanup.push(u);return u}
+async function makeUser(){const email='smoke-'+randomUUID()+'@xijian.invalid',password=randomBytes(5).toString('base64url'),data=await request('/v1/register',{method:'POST',body:{email,password}}),u={...data,email,password};cleanup.push(u);return u}
 try{
  const health=await request('/health');assert.equal(health.ok,true);await request('/v1/register',{method:'OPTIONS',status:204});
  const a=await makeUser(),b=await makeUser();assert.notEqual(a.user.id,b.user.id);
