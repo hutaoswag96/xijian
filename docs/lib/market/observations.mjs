@@ -1,5 +1,5 @@
 // Objective observations only. No thresholds, ranking, forecasts or trade advice.
-import {chinaDate,periodDividendBasis,annualDividends,inferIndustry,shiftYears} from './engine.mjs';
+import {chinaDate,periodDividendBasis,annualDividends,inferIndustry,shiftYears} from './engine.mjs?v=20261112-dividend';
 export const DATA_VERSION='dividend-data-4.0.0';
 const rounded=n=>Number.isFinite(n)?Number(n.toFixed(6)):null;
 export function observe({quote,prices=[],events=[],income=[],asOf=chinaDate()}){

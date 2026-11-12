@@ -220,3 +220,5 @@ dialog{border:none;padding:0;color:var(--ink);background:var(--bg);box-shadow:0 
 .source-disclosure .verification-badge{flex-shrink:0;font-size:10px}
 @media(max-width:600px){.detail-disclosure>summary{gap:8px}.source-disclosure .disclosure-title{font-size:12px}.source-disclosure .verification-badge{font-size:9px;padding:4px 5px}.disclosure-content.detail-two-col{gap:16px}}
 @media(prefers-reduced-motion:reduce){.disclosure-chevron{transition:none}}
+
+.dividend-scheme-scroll{max-height:690px;overflow-y:auto;overscroll-behavior-y:auto;scrollbar-gutter:stable;padding-right:8px}.scheme-list-head{display:flex;justify-content:space-between;position:sticky;top:0;background:#fff;padding:10px 0;color:#65776b;font-size:11px;z-index:1}.dividend-scheme-scroll .scheme-row{box-sizing:border-box;min-height:64px}.dividend-scheme-scroll:focus-visible{outline:2px solid #557e66;outline-offset:3px}

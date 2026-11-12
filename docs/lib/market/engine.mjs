@@ -6,7 +6,7 @@
 import '../../public/risk-profiles.js';
 export const RISK_PROFILES=globalThis.XijianRisk.profiles;
 export const riskProfile=globalThis.XijianRisk.get;
-export const MODEL_VERSION='dividend-period-3.0.0';
+export const MODEL_VERSION='dividend-period-3.1.0';
 export const DAY=86400000;
 export const dateOnly=v=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}/.test(v)?v.slice(0,10):null;
 export const finite=v=>v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v))?Number(v):null;
@@ -101,11 +101,14 @@ export function periodDividendBasis(events,asOf){
  // Treat those as one interim slot; quarterly schedules use the YTD cutoff.
  const oneInterim=priorInterim.length===1&&newEvents.length===1&&['06-30','09-30'].includes(priorInterim[0].reportDate.slice(5))&&['06-30','09-30'].includes(cut);
  const replaced=cut?priorInterim.filter(e=>oneInterim||e.reportDate.slice(5)<=cut):[];
- const selected=base.filter(e=>!replaced.includes(e)).concat(newEvents),components=selected.map(e=>{const factor=shareFactor(known,e.exDate,asOf);return {...e,adjustedCashPerShare:round(e.cashPerShare/factor,8),shareFactor:factor,included:true,role:e.reportDate.slice(0,4)===year?'保留的完整财年分红':'替换后的新期间分红'}});
+ // A newly introduced payment slot is not evidence of extra annual income.
+ // Keep the completed-year baseline until a matching prior slot or a new final is known.
+ const deferred=newEvents.length&&!replaced.length?newEvents:[],applied=deferred.length?[]:newEvents;
+ const selected=base.filter(e=>!replaced.includes(e)).concat(applied),components=selected.map(e=>{const factor=shareFactor(known,e.exDate,asOf);return {...e,adjustedCashPerShare:round(e.cashPerShare/factor,8),shareFactor:factor,included:true,role:e.reportDate.slice(0,4)===year?'保留的完整财年分红':'替换后的新期间分红'}});
  const blockers=[];if(Number(asOf.slice(0,4))-Number(year)>2||newYear&&Number(newYear)!==Number(year)+1)blockers.push('完整财年资料过旧或中间财年缺失，暂停期间替换策略');
  const last=ordinary.map(e=>e.exDate).sort().at(-1);if(last&&daysBetween(last,asOf)>550)blockers.push('普通分红超过18个月未更新，暂停沿用旧基数');
  if(known.some(e=>!e.reportDate&&e.cashPerShare>0&&!e.special&&e.exDate>=final.exDate))blockers.push('新分红缺少所属期间，无法安全替换，暂停信号');
- return {...empty,baseYear:year,newYear,effectiveDate:components.map(e=>e.exDate).sort().at(-1),cashPerShare:round(components.reduce((n,e)=>n+e.adjustedCashPerShare,0),8),components,replaced:replaced.map(e=>({...e,role:'已被新期间替换',included:false})),blockers};
+ return {...empty,baseYear:year,newYear,deferred:deferred.map(e=>({...e,included:false,role:'新增派息期间无上年对应项，暂沿用完整财年基数'})),effectiveDate:components.map(e=>e.exDate).sort().at(-1),cashPerShare:round(components.reduce((n,e)=>n+e.adjustedCashPerShare,0),8),components,replaced:replaced.map(e=>({...e,role:'已被新期间替换',included:false})),blockers};
 }
 export function buildSeries(prices,events,asOf){return prices.filter(p=>p.date<=asOf).map(p=>{
  const fiscal=fiscalDividend(events,p.date),basis=periodDividendBasis(events,p.date),actual=rollingDividendBasis(events,p.date),ordinary=basis.cashPerShare;
@@ -141,8 +144,8 @@ export function analyze({quote,prices=[],events=[],income=[],rates=[],errors=[],
  const cutoff=shiftYears(latest,-3),series=buildSeries(prices,events,latest),recent=series.filter(p=>p.date>=cutoff),values=recent.filter(p=>p.basisReady).map(p=>p.yield).filter(v=>Number.isFinite(v)&&v>=0);
  const actualBasis=rollingDividendBasis(events,latest),basis=periodDividendBasis(events,latest),ordinary=basis.cashPerShare,currentYield=price>0&&ordinary!==null?ordinary/price*100:null;
  const fiscal=fiscalDividend(events,latest),allYears=annualDividends(events,latest);
- const previousEnd=shiftYears(latest,-1),previousFactor=shareFactor(events,previousEnd,latest,false),previousDividend=periodDividendBasis(events,previousEnd).cashPerShare/previousFactor;
- const dividendGrowth=previousDividend>0?(ordinary/previousDividend-1)*100:null;
+ const previousEnd=shiftYears(latest,-1),previousFactor=shareFactor(events,previousEnd,latest,false),previousBasis=periodDividendBasis(events,previousEnd),previousDividend=previousBasis.cashPerShare!==null&&!previousBasis.blockers.length?previousBasis.cashPerShare/previousFactor:null;
+ const dividendGrowth=ordinary!==null&&previousDividend>0?(ordinary/previousDividend-1)*100:null;
  const continuity=[0,1,2].map(n=>{const year=String(Number(basis.baseYear)-n);return {year,cashPerShare:ordinaryAnnual(events,year,latest)}});
  const rate=rates.filter(r=>r.date<=latest&&r.tenYear>0).sort((a,b)=>b.date.localeCompare(a.date))[0]||null;
  const profile=riskProfile(risk),premium=Math.max(.5,industry.premium+profile.premiumDelta);
@@ -162,7 +165,8 @@ export function analyze({quote,prices=[],events=[],income=[],rates=[],errors=[],
  if(latestIncome&&daysBetween(latestIncome.noticeDate,asOf)>220)blockers.push('最新财报披露时间已过久');
  if(latestIncome?.profit!==null&&latestIncome?.profit<=0)blockers.push('最新披露归母净利润非正，暂停普通买入规则');
  if(latestIncome?.profitGrowth!==null&&latestIncome?.profitGrowth<-30)blockers.push('最新披露归母净利润同比下降超过30%');
- if(dividendGrowth!==null&&dividendGrowth<-20)blockers.push('策略参考分红下降超过20%（相对一年前同口径基数）');
+ if(dividendGrowth!==null&&dividendGrowth<-20)blockers.push(`策略参考分红下降超过20%（每股${previousDividend.toFixed(2)}元→${ordinary.toFixed(2)}元，下降${Math.abs(dividendGrowth).toFixed(1)}%）`);
+ if(basis.deferred?.length)warnings.push('新增派息期间无上年对应项，暂沿用最近完整财年基数，不把首笔中期分红推算为全年增量。');
  if(/ST|退/.test(quote?.name||''))blockers.push('风险警示或退市标记，不适用通用区间');
  if(thresholds&&thresholds.rateFloor>thresholds.quantiles.p95*1.3)warnings.push('利率加风险补偿门槛高于历史常见区间，当前更适合观察');
  if(actualBasis.specialCashPerShare>0)warnings.push('数据源明确标记的特别分红已单列，未计入普通股息率和买卖门槛。');
@@ -178,7 +182,7 @@ export function analyze({quote,prices=[],events=[],income=[],rates=[],errors=[],
   fiscalReference:{year:fiscal.year,ordinaryDividend:fiscal.cashPerShare,yield:price>0&&fiscal.cashPerShare>0?round(fiscal.cashPerShare/price*100):null,effectiveDate:fiscal.effectiveDate,components:fiscal.components},
   status,reason,industry,thresholds:thresholds?{...thresholds,basisId:basis.id,buyPrice:priceAtYield(ordinary,thresholds.buyYield),sellPrice:priceAtYield(ordinary,thresholds.sellYield)}:null,rate,
   history:{basisId:basis.id,start:recent[0]?.date||null,end:recent.at(-1)?.date||null,samples:values.length,coverage:round(values.length/Math.max(1,recent.length)),percentile:currentYield!==null&&values.length?round(values.filter(v=>v<=currentYield).length/values.length*100,1):null},
-  annual:allYears.slice(-7),continuity,dividendGrowth:round(dividendGrowth,1),dividendComparison:{previousEnd,previousDividend:round(previousDividend,8),shareFactor:previousFactor},financial:latestIncome,blockers:[...new Set(blockers)],warnings,
+  annual:allYears.slice(-7),continuity,dividendGrowth:round(dividendGrowth,1),dividendComparison:{previousEnd,previousDividend:round(previousDividend,8),currentDividend:ordinary,previousBaseYear:previousBasis.baseYear,shareFactor:previousFactor},financial:latestIncome,blockers:[...new Set(blockers)],warnings,
   series:series.filter(p=>p.date>=shiftYears(latest,-10)).map(({date,close,yield:y,dividend,fiscalYear,fiscalYield,fiscalDividend,windowStart,dividendCount,specialDividend,ttmYield,ttmDividend,basisReady,strategyBaseYear})=>({date,close,yield:y,dividend,fiscalYear,fiscalYield,fiscalDividend,windowStart,dividendCount,specialDividend,ttmYield,ttmDividend,basisReady,strategyBaseYear})),study,
   validation:{status:'未做收益优化',label:'透明规则模型，非上涨概率预测',walkForward:'事件观察与完整模型验证分开展示'}};
 }

@@ -18,10 +18,9 @@
    const year=/^\d{4}/.exec(event.reportDate||'')?.[0]||'所属年度待核';if(!groups.has(year))groups.set(year,[]);groups.get(year).push({...event,status});
   }
   const years=[...groups.keys()].sort().reverse();
-  return `<section class="detail-panel dividend-schemes"><div class="payout-heading"><h3>年度分红方案</h3><span>${years.length} 个年度 · 税前</span></div><p class="data-caption">按报告所属年度归组，点击年份查看各次分红。</p>${years.map(year=>{
-   const rows=groups.get(year).sort((a,b)=>String(b.reportDate).localeCompare(String(a.reportDate))||String(b.exDate).localeCompare(String(a.exDate))),done=rows.filter(r=>r.status==='已实施'),pending=rows.length-done.length;
-   return `<details class="dividend-year" data-disclosure="dividend-${esc(year)}"><summary><span><b>${esc(year)}${/^\d/.test(year)?' 年':''}</b><small>${done.length} 次已实施${pending?' · '+pending+' 项待实施':''}</small></span><span>${rows.length} 项方案<span class="year-chevron">⌄</span></span></summary><div class="dividend-year-body">${rows.map(r=>`<div class="scheme-row"><div><b>${esc(r.reportDate||'期间待核')}</b><small>${r.status==='已实施'?'除息':'预计除息'} ${esc(r.exDate||'待定')}</small></div><div><strong>10 派 ${number(r.cashPerShare*10,3).replace(/0+$/,'').replace(/\.$/,'')} 元</strong><span class="scheme-status ${r.status==='待实施'?'pending':''}">${esc(r.status==='待实施'?r.progress||'预案／待实施':r.status)}${r.special?' · 特别分红':''}</span></div></div>`).join('')}</div></details>`;
-  }).join('')||'<p>暂无可用分红记录。</p>'}<p class="data-caption">预案单独标记，不计入已实施参考基数和个人到账。表内为事件当时每股金额；送转调整后的计算基数可在下方查看。来源未提供的“不分配”年度不补造为零。</p></section>`;
+  const rows=years.flatMap(year=>groups.get(year)).sort((a,b)=>String(b.reportDate||'').localeCompare(String(a.reportDate||''))||String(b.exDate||'').localeCompare(String(a.exDate||'')));
+  return `<section class="detail-panel dividend-schemes"><div class="payout-heading"><h3>分红方案</h3><span>${rows.length} 条 · 税前</span></div><p class="data-caption">按报告期倒序直接展示；窗口约显示10条，更多记录在列表内滚动查看。</p><div class="dividend-scheme-scroll" tabindex="0" role="region" aria-label="分红方案列表，上下滚动查看更多"><div class="scheme-list-head"><span>报告期 / 除息日</span><span>分红方案 / 状态</span></div>${rows.map(r=>`<div class="scheme-row"><div><b>${esc(r.reportDate||'期间待核')}</b><small>${r.status==='已实施'?'除息':'预计除息'} ${esc(r.exDate||'待定')}</small></div><div><strong>10 派 ${number(r.cashPerShare*10,3).replace(/0+$/,'').replace(/\.$/,'')} 元</strong><span class="scheme-status ${r.status==='待实施'?'pending':''}">${esc(r.status==='待实施'?r.progress||'预案／待实施':r.status)}${r.special?' · 特别分红':''}</span></div></div>`).join('')||'<p>暂无可用分红记录。</p>'}</div><p class="data-caption">预案单独标记，不计入已实施参考基数和个人到账。表内为事件当时每股金额；送转调整后的计算基数可在下方查看。来源未提供的“不分配”年度不补造为零。</p></section>`;
+
  }
  root.XijianDividend={payoutChart,schemes};
 })(globalThis);

@@ -1,5 +1,5 @@
-import {chinaDate,dateOnly,finite,shiftYears,normalizeDividends,normalizeDividendPlans} from './engine.mjs';
-import {resolveSources,compareQuotes,compareHistory,compareDividends,compareFinance,compareRates} from './verification.mjs';
+import {chinaDate,dateOnly,finite,shiftYears,normalizeDividends,normalizeDividendPlans} from './engine.mjs?v=20261112-dividend';
+import {resolveSources,compareQuotes,compareHistory,compareDividends,compareFinance,compareRates} from './verification.mjs?v=20261112-dividend';
 
 const memo=new Map();
 const USER_AGENT='Mozilla/5.0 (compatible; Xijian/1.0; private dividend research)';

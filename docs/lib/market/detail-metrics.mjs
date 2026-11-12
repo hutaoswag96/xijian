@@ -1,6 +1,6 @@
 // Optional research display only. These observations never enter analyze().
-import {chinaDate,dateOnly,finite,shiftYears} from './engine.mjs';
-import {cached,emUrl,dividends} from './providers.mjs';
+import {chinaDate,dateOnly,finite,shiftYears} from './engine.mjs?v=20261112-dividend';
+import {cached,emUrl,dividends} from './providers.mjs?v=20261112-dividend';
 const round=n=>Number.isFinite(n)?Number(n.toFixed(4)):null;
 async function json(url){
  const response=await fetch(url,{headers:{Accept:'application/json','User-Agent':'Mozilla/5.0',Referer:'https://emweb.securities.eastmoney.com/'},signal:AbortSignal.timeout(8500)});

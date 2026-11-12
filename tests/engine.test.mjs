@@ -100,7 +100,7 @@ test('basis contributions reconcile ordinary and special amounts and adjust only
 });
 test('Hengdian regression: number, percentile, thresholds, inverted prices and history all use the period-replacement reference',()=>{
  const f=healthyFixture();f.events=f.events.filter(e=>e.exDate<'2025-01-01').concat([event('2025-05-30',.45219,{reportDate:'2024-12-31'}),event('2025-09-30',.38,{reportDate:'2025-06-30'}),event('2026-06-18',.6,{reportDate:'2025-12-31'}),event('2026-10-12',.2299934,{reportDate:'2026-06-30'})]);f.quote={...f.quote,name:'横店东磁',price:17.08};
- const a=analyze(f);assert.equal(a.version,'dividend-period-3.0.0');assert.equal(a.ordinaryDividend,.8299934);assert.equal(a.yield,4.8594);assert.equal(a.fiscalReference.ordinaryDividend,.98);assert.equal(a.fiscalReference.yield,5.7377);assert.equal(a.basis.components.length,2);
+ const a=analyze(f);assert.equal(a.version,'dividend-period-3.1.0');assert.equal(a.ordinaryDividend,.8299934);assert.equal(a.yield,4.8594);assert.equal(a.fiscalReference.ordinaryDividend,.98);assert.equal(a.fiscalReference.yield,5.7377);assert.equal(a.basis.components.length,2);
  assert.equal(a.thresholds.buyPrice,priceAtYield(.8299934,a.thresholds.buyYield));assert.equal(a.thresholds.sellPrice,priceAtYield(.8299934,a.thresholds.sellYield));
  const samples=a.series.filter(p=>p.date>=a.history.start).map(p=>p.yield).filter(Number.isFinite);
  assert.deepEqual(a.thresholds.quantiles,thresholdsFrom(samples,a.rate.tenYear,a.thresholds.premium).quantiles);assert.equal(a.history.percentile,Number((samples.filter(v=>v<=.8299934/17.08*100).length/samples.length*100).toFixed(1)));

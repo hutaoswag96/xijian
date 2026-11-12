@@ -5,7 +5,7 @@ import {handleMarketRequest} from '../lib/market/server.mjs';
 const events=[{reportDate:'2024-12-31',exDate:'2025-06-01',announcementDate:'2025-05-01',cashPerShare:2,shareFactor:1},{reportDate:'2025-06-30',exDate:'2025-10-01',announcementDate:'2025-09-01',cashPerShare:.5,shareFactor:1}];
 test('data response has reproducible dividend arithmetic and no advice, percentiles or performance forecasts',()=>{
  const a=observe({quote:{date:'2025-11-01',price:50},events,prices:[{date:'2025-05-01',close:40},{date:'2025-07-01',close:40},{date:'2025-11-01',close:50}],asOf:'2025-11-01'});
- assert.equal(a.yield,5);assert.equal(a.ordinaryDividend,2.5);assert.equal(a.series[0].yield,null);assert.equal(a.series[1].yield,5);
+ assert.equal(a.yield,4);assert.equal(a.ordinaryDividend,2);assert.equal(a.series[0].yield,null);assert.equal(a.series[1].yield,5);
  for(const key of ['thresholds','status','risk','study','rate','blockers','reason'])assert.equal(a[key],undefined);assert.equal(a.history.percentile,undefined);
 });
 test('private stock endpoint returns isolated research and safe pauses when required data is unavailable',async()=>{

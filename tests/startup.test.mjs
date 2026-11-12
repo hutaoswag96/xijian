@@ -25,7 +25,7 @@ test('new user starts empty; adding saves immediately without waiting and retrie
  h.run("openDetail('sh601318')");const detail=h.element('detailDialog').innerHTML;assert.ok(detail.includes('参考股息率'));assert.ok(detail.includes('数据来源与核对'));assert.ok(detail.includes('价格与股息记录'));
  for(const bad of ['自动下单','保证上涨'])assert.ok(!detail.includes(bad),bad);
  h.run("records.sh601318.analysis.research={version:'personal-research-5.0',status:'hold',reason:'区间内观察',risk:{id:'balanced',label:'均衡',buyQuantile:.7},history:{percentile:61},thresholds:{buyPrice:45,sellPrice:65,buyYield:5,sellYield:3},blockers:[],study:{count:0,samples:[],winRate:null,averageReturn:null}};renderDetail()");const restored=h.element('detailDialog').innerHTML;assert.ok(restored.includes('买入参考价上限'));assert.ok(restored.includes('data-threshold-line="buy"'));assert.ok(restored.includes('近三年股息率历史位置'));h.run("selectDetailTab('strategy')");assert.ok(h.element('detailDialog').innerHTML.includes('历史高股息窗口检验'));
- h.run("selectDetailTab('dividends')");await new Promise(r=>setImmediate(r));assert.ok(h.element('detailDialog').innerHTML.includes('年度分红方案'));
+ h.run("selectDetailTab('dividends')");await new Promise(r=>setImmediate(r));assert.ok(h.element('detailDialog').innerHTML.includes('分红方案'));
 });
 test('migration preserves user collections and ledger but invalidates advice caches and removes risk/cap settings',async()=>{
  const h=harness({watch:[{symbol:'sz002056',name:'横店东磁'}],records:{sz002056:{analysis:{version:'dividend-period-3.0.0',thresholds:{buyPrice:10},status:'buy'}}},preferences:{risk:'aggressive',cap:20,chartPeriod:'5y'},changes:[{to:'buy'}],holdings:{sz002056:true},modelVersion:'dividend-period-3.0.0'});

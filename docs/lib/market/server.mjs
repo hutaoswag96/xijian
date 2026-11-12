@@ -1,8 +1,8 @@
-import {personalResearch} from './personal-research.mjs';
-import {chinaDate} from './engine.mjs';
-import {observe,DATA_VERSION} from './observations.mjs';
-import * as provider from './providers.mjs';
-import {detailMetrics} from './detail-metrics.mjs';
+import {personalResearch} from './personal-research.mjs?v=20261112-dividend';
+import {chinaDate} from './engine.mjs?v=20261112-dividend';
+import {observe,DATA_VERSION} from './observations.mjs?v=20261112-dividend';
+import * as provider from './providers.mjs?v=20261112-dividend';
+import {detailMetrics} from './detail-metrics.mjs?v=20261112-dividend';
 
 const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});
 const sourceStatus=(section,result)=>result.status==='fulfilled'?{section,status:'ok',source:result.value.source,sourceUrl:result.value.sourceUrl,fetchedAt:result.value.fetchedAt,note:result.value.note||null,fallback:!!result.value.fallback,verification:result.value.verification||null}:{section,status:'error',message:result.reason?.message||'数据暂不可用'};
