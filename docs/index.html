@@ -4,13 +4,13 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#164b3c"><meta name="description" content="息见：A股分红数据查询、自选整理与个人持仓、交易及分红到账记录。">
   <link rel="icon" href="./favicon.svg"><title>息见 · 个人股息研究与记账</title><link rel="stylesheet" href="./style.css?v=20261112-dividend"><script src="./pages-bridge.js?v=20261112-dividend" defer></script><script src="./icons.js?v=20261112-dividend" defer></script><script src="./auto-data.js?v=20261112-dividend" defer></script><script src="./history-chart.js?v=20261112-dividend" defer></script>
-<script src="./investment-state.js?v=20261112-dividend" defer></script><script src="./workspace-ui.js?v=20261112-dividend" defer></script>
+<script src="./assistant-bridge.js?v=20261118-mwlh7jzy" defer></script><script src="./investment-state.js?v=20261112-dividend" defer></script><script src="./workspace-ui.js?v=20261112-dividend" defer></script>
 <script src="./account-data.js?v=20261112-dividend" defer></script>
 <script src="./mine-ui.js?v=20261112-dividend" defer></script>
 <script src="./dividend-research.js?v=20261112-dividend" defer></script>
 <script src="./personal-research.js?v=20261112-dividend" defer></script>
 <script src="./sync-core.js?v=20261112-dividend" defer></script><script src="./account-transport.js?v=20261112-dividend" defer></script><script src="./email-sync.js?v=20261112-dividend" defer></script><script src="./entry-gate.js?v=20261112-loginfirst" defer></script><script src="./app.js?v=20261112-dividend" defer></script>
-<link rel="stylesheet" href="./workspace.css?v=20261112-dividend">
+<link rel="stylesheet" href="./workspace.css?v=20261112-dividend"><link rel="stylesheet" href="./assistant.css?v=20261118-mwlh7jzy">
 <link rel="stylesheet" href="./mine.css?v=20261112-dividend">
 <link rel="stylesheet" href="./entry.css?v=20261112-dividend"><style>html[data-entry="locked"] body > :not(#entryGate):not(script):not(noscript){display:none!important}</style></head>
 <body><section id="entryGate" class="entry-gate" aria-labelledby="entryTitle"><div id="entryContent" class="entry-content"><div class="entry-brand">息见</div><h1 id="entryTitle">欢迎来到息见</h1><p>看清股息高低，记好每一笔分红。</p><div class="entry-options"><button class="entry-option entry-primary" data-entry-action="login"><span><b>邮箱登录</b><small>登录已有账号，继续查看个人记录</small></span></button><button class="entry-option entry-guest" data-entry-action="guest"><span><b>游客体验</b><small>记录保存在当前设备</small></span></button></div><p class="entry-login">还没有账号？<button data-entry-action="register">去注册</button></p></div></section><noscript>请启用JavaScript后选择邮箱登录或游客体验。</noscript>
@@ -22,6 +22,7 @@
     <a href="#dashboard" data-page="dashboard"><span data-icon="dashboard"></span>股息研究看板<span class="nav-dot"></span></a>
     <a href="#watchlist" data-page="watchlist"><span data-icon="list"></span>我的自选<span class="nav-count" id="navCount">0</span></a>
     <a href="#holdings" data-page="holdings"><span data-icon="wallet"></span>我的持仓</a>
+    <a href="#assistant" data-page="assistant"><span data-icon="spark"></span>投资助理</a>
     <a href="#mine" data-page="mine"><span data-icon="user"></span>我的</a>
   </nav>
   <div class="sidebar-bottom"><div class="engine-card"><span class="engine-dot"></span><b>分红数据与记录</b><p>查看分红与财报<br>记录实际交易和到账</p><button class="text-link" data-action="method">查看数据口径 <span data-icon="arrow"></span></button></div><div class="side-foot"><span data-icon="flask"></span>公开资料 · 个人记录<span>v4.0</span></div></div>
@@ -31,7 +32,7 @@
   <div class="github-notice" id="githubDataMode">GitHub访问版 · 行情直接查询，失败时尝试带日期的快照 · 游客保存在本机，登录后同步</div><main id="main" tabindex="-1"></main>
   <footer class="page-footer"><span>息见 · 分红资料与个人记录</span><span>个人研究参考 · 公开数据可能延迟</span></footer>
 </div>
-<nav class="mobile-nav" aria-label="手机导航"><a href="#dashboard" data-page="dashboard"><span data-icon="dashboard"></span>看板</a><a href="#watchlist" data-page="watchlist"><span data-icon="list"></span>自选</a><a href="#holdings" data-page="holdings"><span data-icon="wallet"></span>持仓</a><a href="#mine" data-page="mine"><span data-icon="user"></span>我的</a></nav>
+<nav class="mobile-nav" aria-label="手机导航"><a href="#dashboard" data-page="dashboard"><span data-icon="dashboard"></span>看板</a><a href="#watchlist" data-page="watchlist"><span data-icon="list"></span>自选</a><a href="#holdings" data-page="holdings"><span data-icon="wallet"></span>持仓</a><a href="#assistant" data-page="assistant"><span data-icon="spark"></span>助理</a><a href="#mine" data-page="mine"><span data-icon="user"></span>我的</a></nav>
 <dialog id="detailDialog" class="detail-dialog" aria-labelledby="detailTitle"></dialog>
 <dialog id="addDialog" class="add-dialog" aria-labelledby="addTitle"></dialog>
 <dialog id="infoDialog" class="info-dialog" aria-labelledby="infoTitle"></dialog>
@@ -40,6 +41,7 @@
 <dialog id="tradeDialog" class="add-dialog workspace-dialog" aria-label="持仓与交易录入"></dialog>
 <dialog id="ledgerDialog" class="ledger-dialog workspace-dialog" aria-label="持仓交易记录"></dialog>
 <dialog id="receiptDialog" class="add-dialog workspace-dialog" aria-label="分红实际到账记账"></dialog>
+<dialog id="assistantPickDialog" class="add-dialog workspace-dialog" aria-label="提交分析请求"></dialog>
 <dialog id="mineDataDialog" class="add-dialog workspace-dialog" aria-label="清除本机数据确认"></dialog>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 </body></html>

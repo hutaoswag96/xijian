@@ -1,18 +1,22 @@
 import fs from 'node:fs';import path from 'node:path';
-const out=path.resolve('docs');fs.rmSync(out,{recursive:true,force:true});fs.mkdirSync(out,{recursive:true});fs.cpSync('public',out,{recursive:true});
+const out=path.resolve('docs'),dataKeep=path.resolve('.docs-data-keep');
+fs.rmSync(dataKeep,{recursive:true,force:true});if(fs.existsSync(path.join(out,'data')))fs.cpSync(path.join(out,'data'),dataKeep,{recursive:true});
+fs.rmSync(out,{recursive:true,force:true});fs.mkdirSync(out,{recursive:true});fs.cpSync('public',out,{recursive:true});
 fs.mkdirSync(path.join(out,'public'),{recursive:true});for(const name of ['risk-profiles.js','investment-state.js'])fs.copyFileSync('public/'+name,path.join(out,'public',name));
 fs.cpSync('lib/market',path.join(out,'lib/market'),{recursive:true});
 const providerFile=path.join(out,'lib/market/providers.mjs');fs.writeFileSync(providerFile,fs.readFileSync(providerFile,'utf8').replace('new TextDecoder(encoding)',"new TextDecoder('utf-8')"));
 for(const name of fs.readdirSync(path.join(out,'lib/market'))){if(!name.endsWith('.mjs'))continue;const file=path.join(out,'lib/market',name);fs.writeFileSync(file,fs.readFileSync(file,'utf8').replace(/(from ['"])(\.\.?\/[^'"]+\.mjs)(['"])/g,'$1$2?v=20261112-dividend$3'))}
 fs.copyFileSync('github/pages-bridge.js',path.join(out,'pages-bridge.js'));
 let html=fs.readFileSync('frontend/index.html','utf8').replaceAll('src="/','src="./').replaceAll('href="/','href="./').replaceAll('v=20261110-tags','v=20261112-dividend');
+const assistantStamp='v=20261118-'+Date.now().toString(36);html=html.replaceAll('v=20261118-assistant',assistantStamp);
 html=html.replace('<script src="./icons.js','<script src="./pages-bridge.js?v=20261112-dividend" defer></script><script src="./icons.js');
 html=html.replace('<script src="./app.js','<script src="./sync-core.js?v=20261112-dividend" defer></script><script src="./account-transport.js?v=20261112-dividend" defer></script><script src="./email-sync.js?v=20261112-dividend" defer></script><script src="./entry-gate.js?v=20261112-loginfirst" defer></script><script src="./app.js');
 html=html.replace('<main id="main"','<div class="github-notice" id="githubDataMode">GitHub访问版 · 行情直接查询，失败时尝试带日期的快照 · 游客保存在本机，登录后同步</div><main id="main"').replace('仅供本人研究','个人研究参考');
 html=html.replace('<html lang="zh-CN">','<html lang="zh-CN" data-entry="locked">');
 html=html.replace('</head>','<link rel="stylesheet" href="./entry.css?v=20261112-dividend"><style>html[data-entry="locked"] body > :not(#entryGate):not(script):not(noscript){display:none!important}</style></head>');
 html=html.replace('<body>','<body><section id="entryGate" class="entry-gate" aria-labelledby="entryTitle"><div id="entryContent" class="entry-content"><div class="entry-brand">息见</div><h1 id="entryTitle">欢迎来到息见</h1><p>看清股息高低，记好每一笔分红。</p><div class="entry-options"><button class="entry-option entry-primary" data-entry-action="login"><span><b>邮箱登录</b><small>登录已有账号，继续查看个人记录</small></span></button><button class="entry-option entry-guest" data-entry-action="guest"><span><b>游客体验</b><small>记录保存在当前设备</small></span></button></div><p class="entry-login">还没有账号？<button data-entry-action="register">去注册</button></p></div></section><noscript>请启用JavaScript后选择邮箱登录或游客体验。</noscript>');
-fs.writeFileSync(path.join(out,'index.html'),html);fs.writeFileSync(path.join(out,'.nojekyll'),'');
+fs.writeFileSync(path.join(out,'index.html'),html);
+if(fs.existsSync(dataKeep)){fs.cpSync(dataKeep,path.join(out,'data'),{recursive:true});fs.rmSync(dataKeep,{recursive:true,force:true})}fs.writeFileSync(path.join(out,'.nojekyll'),'');
 fs.appendFileSync(path.join(out,'workspace.css'),'\n.github-notice{margin:12px 24px 0;padding:9px 12px;font-size:12px;line-height:1.7;color:#52665a;background:#f3f5ed;border-radius:8px}@media(max-width:600px){.github-notice{margin:10px 16px 0}}\n');
 const mineFile=path.join(out,'mine-ui.js');let mine=fs.readFileSync(mineFile,'utf8');
 mine=mine.replaceAll('账号备份与恢复','邮箱登录与同步').replaceAll('主动保存 · 换设备恢复','免费注册 · 登录后自动同步').replaceAll("accountState.authenticated?'网站访问账号':'本机使用'","accountState.authenticated?'已登录邮箱账号':'游客 · 本机使用'").replaceAll("accountState.hasBackup?'账号有备份；本机更改需主动保存':'当前记录先保存在本机'","typeof emailStatus==='string'?emailStatus:'当前记录先保存在本机'").replaceAll('个人记录先保存在本机。账号备份须由你主动保存。','游客先存本机；登录后自动同步，冲突时保留两份待选择。');
