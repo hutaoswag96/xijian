@@ -61,10 +61,23 @@
 .assistant-detail .advice-card.buy,.assistant-detail .advice-card.sell,.assistant-detail .advice-card.watch{border-left:0}
 .assistant-detail-empty h3{font-size:14px;margin:0 0 6px}
 
+.assistant-lock{border-color:#dbe4dc;background:linear-gradient(180deg,#fbfcf9,#f6f8f2)}
+.assistant-lock-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.assistant-lock-head h2{margin:0}
+.assistant-lock-head .advice-chip{margin-left:0;color:#2c6b52;background:#eef6f0;border-color:#d5e7da}
+.assistant-lock p{font-size:13px;color:#3f4f47;margin:0 0 10px}
+.assistant-unlock-form{display:flex;gap:8px;align-items:center}
+.assistant-unlock-form input{flex:1;min-width:0;height:38px;padding:0 12px;border:1px solid var(--line);border-radius:9px;background:#fff;font-size:14px}
+.assistant-unlock-form input:focus{outline:2px solid #cfe0d4;outline-offset:1px}
+.assistant-unlock-form .btn{flex-shrink:0;height:38px}
+.assistant-lock-error{color:#9d4b46!important;font-size:12px!important;margin:8px 0 0!important}
+
 @media(max-width:640px){
   .assistant-panel{padding:15px 16px}
   .assistant-meta-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   .advice-card{padding:13px 13px}
   .advice-zones{grid-template-columns:1fr}
   .advice-head b{font-size:15px}
+  .assistant-unlock-form{flex-wrap:nowrap}
+  .assistant-unlock-form .btn{padding:0 14px}
 }

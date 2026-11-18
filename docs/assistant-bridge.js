@@ -4,8 +4,9 @@
 // 下行（建议→网页）优先读本机桥，其次读同源 assistant/advice.json（这样手机和他人设备也能看到已发布建议）。
 (function () {
   const ORIGIN = 'http://127.0.0.1:47821';
-  const FALLBACK = './assistant/advice.json';
-  const state = {online: false, probing: false, lastSync: null, advice: null, adviceSource: null, requests: [], error: '', syncing: false, timer: null};
+  const SEALED = './assistant/advice.enc.json';
+  const KEY_STORE = 'xijian.assistant.seal';
+  const state = {online: false, probing: false, lastSync: null, advice: null, adviceSource: null, requests: [], error: '', syncing: false, timer: null, locked: false, sealed: null, sealError: '', unlocking: false};
   let queued = false;
 
   function request(method, path, body, timeout = 3000) {
@@ -75,20 +76,98 @@
       state.online = false;
       state.error = error.message;
     }
-    try {
-      const response = await fetch(FALLBACK + '?t=' + Date.now(), {cache: 'no-store'});
-      if (response.ok) {
-        const data = await response.json();
-        if (data && Array.isArray(data.items)) {
-          state.advice = data;
-          state.adviceSource = '已发布快照';
-          refreshViews();
-          return data;
-        }
-      }
-    } catch {}
+    const sealed = await loadSealed();
+    if (sealed) return sealed;
     refreshViews();
     return null;
+  }
+
+  // ---- 加密快照：电脑关机时的只读兜底 ----
+  function b64buf(text) {
+    const raw = atob(text);
+    const out = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+    return out;
+  }
+  function buf64(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let text = '';
+    for (let i = 0; i < bytes.length; i++) text += String.fromCharCode(bytes[i]);
+    return btoa(text);
+  }
+  function cacheRead() {
+    try { return JSON.parse(localStorage.getItem(KEY_STORE) || 'null'); } catch { return null; }
+  }
+  function cacheWrite(value) {
+    try { localStorage.setItem(KEY_STORE, JSON.stringify(value)); } catch {}
+  }
+  function cacheClear() {
+    try { localStorage.removeItem(KEY_STORE); } catch {}
+  }
+  async function deriveRaw(pass, salt, iter) {
+    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveBits']);
+    const bits = await crypto.subtle.deriveBits({name: 'PBKDF2', salt: b64buf(salt), iterations: iter, hash: 'SHA-256'}, base, 256);
+    return buf64(bits);
+  }
+  async function decryptSealed(sealed, raw) {
+    const key = await crypto.subtle.importKey('raw', b64buf(raw), {name: 'AES-GCM'}, false, ['decrypt']);
+    const plain = await crypto.subtle.decrypt({name: 'AES-GCM', iv: b64buf(sealed.iv)}, key, b64buf(sealed.ct));
+    return JSON.parse(new TextDecoder().decode(plain));
+  }
+  function applySealed(data, sealed) {
+    state.advice = data;
+    state.adviceSource = '加密快照';
+    state.sealed = sealed;
+    refreshViews();
+  }
+  async function loadSealed() {
+    if (!('crypto' in window) || !crypto.subtle) return null;
+    let sealed = null;
+    try {
+      const response = await fetch(SEALED + '?t=' + Date.now(), {cache: 'no-store'});
+      if (!response.ok) return null;
+      sealed = await response.json();
+    } catch { return null; }
+    if (!sealed || !sealed.ct) return null;
+    state.sealed = sealed;
+    const cached = cacheRead();
+    if (cached && cached.salt === sealed.salt && cached.iter === sealed.iter) {
+      try {
+        const data = await decryptSealed(sealed, cached.raw);
+        state.locked = false;
+        state.sealError = '';
+        applySealed(data, sealed);
+        return data;
+      } catch {
+        cacheClear();
+        state.sealError = '本机记住的密钥已失效，请重新输入口令';
+      }
+    }
+    state.locked = true;
+    return null;
+  }
+  async function unlock(pass) {
+    if (!state.sealed) await loadSealed();
+    if (!state.sealed) { state.sealError = '没有找到可用的快照文件'; refreshViews(); return false; }
+    if (state.unlocking) return false;
+    state.unlocking = true;
+    try {
+      const raw = await deriveRaw(pass, state.sealed.salt, state.sealed.iter);
+      const data = await decryptSealed(state.sealed, raw);
+      cacheWrite({salt: state.sealed.salt, iter: state.sealed.iter, raw});
+      state.locked = false;
+      state.sealError = '';
+      applySealed(data, state.sealed);
+      if (typeof toast === 'function') toast('快照已解锁');
+      return true;
+    } catch {
+      state.sealError = '口令不正确';
+      refreshViews();
+      if (typeof toast === 'function') toast('口令不正确');
+      return false;
+    } finally {
+      state.unlocking = false;
+    }
   }
 
   async function loadRequests() {
@@ -169,29 +248,51 @@
 
   function detailBlock(symbol) {
     const item = adviceFor(symbol);
-    if (!item) return `<section class="detail-panel assistant-detail-empty"><h3>投资助理</h3><p class="form-help">这只股票还没有助理建议。点击下方按钮提交分析请求，助理生成后会显示在这里。</p><button class="btn small" data-action="assistant-ask" data-symbol="${esc(symbol)}">请助理分析这只股票</button></section>`;
+    if (!item) return `<section class="detail-panel assistant-detail-empty"><h3>投资助理</h3><p class="form-help">${state.locked ? '离线快照尚未解锁，先到「投资助理」页输入口令即可查看建议。' : '这只股票还没有助理建议。点击下方按钮提交分析请求，助理生成后会显示在这里。'}</p><button class="btn small" data-action="assistant-ask" data-symbol="${esc(symbol)}">请助理分析这只股票</button></section>`;
     return `<section class="detail-panel assistant-detail"><div class="assistant-detail-head"><h3>投资助理建议</h3></div>${itemCard(item)}<p class="form-help">助理建议基于公开资料与网页记录，由本人本地分析生成，不自动下单，也不代表收益承诺。</p></section>`;
+  }
+
+  function lockPanel() {
+    return `<section class="assistant-panel assistant-lock"><div class="assistant-lock-head"><h2>读取加密快照</h2><span class="advice-chip">离线可用</span></div>
+      <p>本机助理没有连上。发布到网页上的那份建议是加密的，输入一次口令就能看，本设备会记住密钥。</p>
+      <form id="assistantUnlockForm" class="assistant-unlock-form"><input id="assistantPass" name="pass" type="password" autocomplete="current-password" placeholder="输入口令" required><button class="btn primary" type="submit">解锁</button></form>
+      ${state.sealError ? `<p class="assistant-lock-error">${esc(state.sealError)}</p>` : ''}
+      <p class="form-help">快照更新于 ${esc(ago(state.sealed?.updatedAt))}，共 ${esc(state.sealed?.items ?? 0)} 条。口令只在这台设备上用于解密，不会上传。</p></section>`;
   }
 
   function page() {
     const items = state.advice?.items || [];
     const general = state.advice?.general || [];
     const pending = state.requests;
-    const statusLine = state.online ? `<span class="assistant-status on">本机桥已连接 · 网页操作会实时同步到本地</span>` : `<span class="assistant-status off">本机桥未连接${state.error ? '（' + esc(state.error) + '）' : ''} · 当前显示${state.adviceSource ? '已发布建议（' + esc(state.adviceSource) + '）' : '缓存'}</span>`;
+    const statusLine = state.online
+      ? `<span class="assistant-status on">本机桥已连接 · 网页操作会实时同步到本地</span>`
+      : `<span class="assistant-status off">本机桥未连接 · ${state.locked ? '快照已加密，待解锁' : state.adviceSource ? '当前显示' + esc(state.adviceSource) : '暂无离线快照'}</span>`;
     return `<div class="page-heading"><div><div class="eyebrow">PERSONAL INVESTMENT ASSISTANT</div><h1>投资助理</h1><p>自选与持仓的操作会同步到本机；助理分析后把结论写回这里。</p></div><div class="heading-actions"><button class="btn" data-action="assistant-sync">立即同步</button><button class="btn primary" data-action="assistant-pick">添加分析请求</button></div></div>
       <section class="assistant-panel">${statusLine}
-        <div class="assistant-meta-row"><div><span>最近同步</span><b>${state.lastSync ? ago(state.lastSync) : '—'}</b></div><div><span>建议更新</span><b>${ago(state.advice?.updatedAt)}</b></div><div><span>待分析</span><b>${pending.length} 只</b></div><div><span>建议条数</span><b>${items.length}</b></div></div>
+        <div class="assistant-meta-row"><div><span>最近同步</span><b>${state.lastSync ? ago(state.lastSync) : '—'}</b></div><div><span>建议更新</span><b>${ago(state.advice?.updatedAt || state.sealed?.updatedAt)}</b></div><div><span>待分析</span><b>${pending.length} 只</b></div><div><span>建议条数</span><b>${items.length}</b></div></div>
       </section>
+      ${state.locked && !items.length ? lockPanel() : ''}
       ${pending.length ? `<section class="assistant-panel"><h2>待分析请求</h2><div class="assistant-requests">${pending.map(r => `<div class="assistant-request"><b>${esc(r.name)}</b><small>${esc(String(r.symbol).slice(2))} · ${esc(r.at.slice(0, 16).replace('T', ' '))}${r.note ? ' · ' + esc(r.note) : ''}</small><span>等待助理处理</span></div>`).join('')}</div><p class="form-help">这些请求已记录在本地 pending 队列，助理下一次分析时会读到。</p></section>` : ''}
       ${general.length ? `<section class="assistant-panel"><h2>组合提示</h2><ul class="assistant-general">${general.map(g => `<li>${esc(g)}</li>`).join('')}</ul></section>` : ''}
-      <section class="assistant-panel"><h2>个股建议</h2>${items.length ? `<div class="advice-list">${items.map(item => itemCard(item)).join('')}</div>` : `<div class="empty-state"><b>还没有助理建议</b><p>先在自选里添加股票，再把想要结论的提交给助理。</p><button class="btn primary" data-action="assistant-pick">提交分析请求</button></div>`}</section>
+      <section class="assistant-panel"><h2>个股建议</h2>${items.length ? `<div class="advice-list">${items.map(item => itemCard(item)).join('')}</div>` : state.locked ? `<p class="form-help">解锁后显示上次封存的建议。</p>` : `<div class="empty-state"><b>还没有助理建议</b><p>先在自选里添加股票，再把想要结论的提交给助理。</p><button class="btn primary" data-action="assistant-pick">提交分析请求</button></div>`}</section>
       <p class="form-help">助理建议由本人在本地结合公开资料、历史分红和你录入的持仓生成，属于个人研究记录；不构成对外荐股，不自动下单，不保证收益。</p>`;
   }
 
   function refreshViews() {
     try {
-      if (document.getElementById('assistantBody')) {
-        document.getElementById('assistantBody').innerHTML = page();
+      const body = document.getElementById('assistantBody');
+      if (body) {
+        // 重绘时保住正在输入的口令，避免后台刷新把输入框清空
+        const old = document.getElementById('assistantPass');
+        const keep = old ? {value: old.value, focused: document.activeElement === old} : null;
+        body.innerHTML = page();
+        if (keep) {
+          const next = document.getElementById('assistantPass');
+          if (next) {
+            next.value = keep.value;
+            if (keep.focused) { next.focus(); next.setSelectionRange(next.value.length, next.value.length); }
+          }
+        }
         if (typeof hydrateIcons === 'function') hydrateIcons();
       }
       const strip = document.getElementById('assistantStrip');
@@ -205,7 +306,7 @@
     const items = state.advice?.items || [];
     const count = items.length;
     const pending = state.requests.length;
-    const line = count ? `最近建议 ${ago(state.advice.updatedAt)} · ${state.adviceSource}` : '还没有生成建议';
+    const line = count ? `最近建议 ${ago(state.advice.updatedAt)} · ${state.adviceSource}` : state.locked ? '快照已加密，点开输入口令' : '还没有生成建议';
     return `<span class="assistant-strip-icon" aria-hidden="true">AI</span><span class="assistant-strip-copy"><b>投资助理${count ? ` · ${count} 条建议` : ''}${pending ? ` · ${pending} 条待分析` : ''}</b><small>${esc(line)} · ${esc(state.online ? '本机桥已连接' : '本机桥未连接')}</small></span><span class="assistant-strip-go">查看 ›</span>`;
   }
 
@@ -237,6 +338,23 @@
   }
 
   document.addEventListener('submit', async event => {
+    if (event.target.id !== 'assistantUnlockForm') return;
+    event.preventDefault();
+    const form = event.target;
+    const pass = String(new FormData(form).get('pass') || '');
+    const button = form.querySelector('[type=submit]');
+    if (!pass) return;
+    button.disabled = true;
+    button.textContent = '解密中';
+    await unlock(pass);
+    if (document.getElementById('assistantUnlockForm') === form) {
+      button.disabled = false;
+      button.textContent = '解锁';
+      form.querySelector('input').value = '';
+    }
+  });
+
+  document.addEventListener('submit', async event => {
     if (event.target.id !== 'assistantPickForm') return;
     event.preventDefault();
     const form = event.target, data = new FormData(form);
@@ -260,7 +378,7 @@
 
   window.XijianAssistant = {
     state, probe, sync, syncSoon, loadAdvice, loadRequests, refreshViews,
-    page, strip: stripContent, cardBadge, detailBlock, adviceFor, ask,
+    page, strip: stripContent, cardBadge, detailBlock, adviceFor, ask, unlock, loadSealed,
   };
 
   document.addEventListener('DOMContentLoaded', async () => {
@@ -272,5 +390,5 @@
     setInterval(() => { if (!document.hidden && state.online) void loadAdvice(); }, 60000);
     setInterval(() => { if (!document.hidden && state.online) void loadRequests(); }, 120000);
   });
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) { void probe().then(ok => { if (ok) { void sync(); void loadAdvice(); } }); } });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { void probe().then(ok => { if (ok) { void sync(); void loadAdvice(); } else if (!state.advice || state.locked) { void loadAdvice(); } }); } });
 })();
